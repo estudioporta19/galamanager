@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gala Manager</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3a;
+    --text: #e8e8f0;
+    --muted: #6060a0;
+    --accent: #c8ff00;
+    --luz: #ffd700;
+    --som: #00d4ff;
+    --video: #ff6b35;
+    --active-row: #1a2a0a;
+    --active-border: #c8ff00;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .logo span { color: var(--muted); }
+
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+
+  .view-toggle {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .view-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .view-btn.active {
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+  }
+
+  .btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+  .btn.primary:hover { background: #aad900; }
+  .btn.danger { border-color: #ff4444; color: #ff4444; }
+  .btn.danger:hover { background: #ff4444; color: #000; }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── CONFIG VIEW ── */
+  #view-config {
+    padding: 32px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .config-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .field input, .field select, .field textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    transition: border-color 0.15s;
+  }
+
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+  }
+
+  .checkbox-row input[type=checkbox] {
+    width: 16px; height: 16px;
+    accent-color: var(--accent);
+  }
+
+  .checkbox-row label {
+    font-size: 0.85rem;
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  /* ── PLANNING VIEW ── */
+  #view-plan { padding: 24px 32px; }
+
+  .plan-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .plan-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+  }
+
+  .turmas-list { display: flex; flex-direction: column; gap: 24px; }
+
+  .turma-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+
+  .turma-block.dragging {
+    opacity: 0.5;
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  .turma-block.drag-over {
+    box-shadow: 0 -3px 0 0 var(--accent);
+  }
+
+  .turma-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    cursor: grab;
+    user-select: none;
+  }
+
+  .turma-header:active { cursor: grabbing; }
+
+  .drag-handle {
+    color: var(--muted);
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .turma-name-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 2px 4px;
+    flex: 1;
+    transition: border-color 0.15s;
+  }
+
+  .turma-name-input:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+  }
+
+  .turma-actions { display: flex; gap: 8px; margin-left: auto; }
+
+  .icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    transition: all 0.15s;
+  }
+
+  .icon-btn:hover { color: var(--text); background: var(--border); }
+  .icon-btn.del:hover { color: #ff4444; background: rgba(255,68,68,0.1); }
+
+  /* ── CUE TABLE ── */
+  .cue-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  .cue-table th {
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    white-space: nowrap;
+  }
+
+  .cue-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(42,42,58,0.5);
+    vertical-align: middle;
+  }
+
+  .cue-table tr:last-child td { border-bottom: none; }
+
+  .cue-table tr:hover td { background: var(--surface2); }
+
+  .cue-num {
+    color: var(--muted);
+    font-size: 0.75rem;
+    width: 40px;
+    text-align: center;
+  }
+
+  .cue-table td input[type=text] {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    padding: 3px 4px;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+
+  .cue-table td input[type=text]:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+  }
+
+  .cue-table td input[type=checkbox] {
+    accent-color: var(--accent);
+    width: 14px; height: 14px;
+    cursor: pointer;
+  }
+
+  .check-luz { accent-color: var(--luz) !important; }
+  .check-som { accent-color: var(--som) !important; }
+  .check-video { accent-color: var(--video) !important; }
+
+  .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+  .dot.luz { background: var(--luz); }
+  .dot.som { background: var(--som); }
+  .dot.video { background: var(--video); }
+
+  .add-row-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-top: 1px dashed var(--border);
+    color: var(--muted);
+    padding: 10px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .add-row-btn:hover { color: var(--accent); background: rgba(200,255,0,0.03); }
+
+  .file-tag {
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .file-tag.valid { color: var(--accent); }
+  .file-tag.warn { color: var(--video); }
+
+  /* ── OPERATION VIEW ── */
+  #view-op {
+    background: #050508;
+    min-height: calc(100vh - 57px);
+    padding: 0;
+  }
+
+  .op-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .op-show-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+
+  .delay-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .delay-control label {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .delay-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--video);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    padding: 6px 10px;
+    width: 70px;
+    text-align: center;
+    border-radius: 4px;
+  }
+
+  .delay-input:focus { outline: none; border-color: var(--video); }
+
+  .time-display {
+    font-size: 0.75rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .op-hint {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  .op-hint kbd {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text);
+  }
+
+  /* ── OP TABLE ── */
+  .op-table-wrap { padding: 0; }
+
+  .op-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .op-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 2px solid var(--border);
+    background: #080810;
+    position: sticky;
+    top: 57px;
+    z-index: 10;
+  }
+
+  .op-row {
+    border-bottom: 1px solid rgba(42,42,58,0.4);
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+
+  .op-row td {
+    padding: 10px 14px;
+    vertical-align: middle;
+  }
+
+  .op-row.done { opacity: 0.3; }
+
+  .op-row.active {
+    background: var(--active-row) !important;
+    border-left: 3px solid var(--active-border);
+  }
+
+  .op-row.active td:first-child { padding-left: 11px; }
+
+  .op-row.active .op-cue-num {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .op-row.active .op-action {
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .op-row.next { opacity: 0.6; }
+
+  .op-cue-num {
+    color: var(--muted);
+    font-size: 0.8rem;
+    width: 50px;
+    text-align: right;
+    padding-right: 6px !important;
+  }
+
+  .op-turma {
+    font-size: 0.7rem;
+    color: var(--muted);
+    white-space: nowrap;
+    width: 80px;
+  }
+
+  .op-action {
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+
+  .op-icons { white-space: nowrap; width: 80px; }
+
+  .dept-icon {
+    display: inline-block;
+    width: 24px; height: 24px;
+    border-radius: 4px;
+    text-align: center;
+    line-height: 24px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-right: 3px;
+    opacity: 0.3;
+  }
+
+  .dept-icon.on { opacity: 1; }
+  .dept-icon.luz-icon { background: rgba(255,215,0,0.15); color: var(--luz); }
+  .dept-icon.som-icon { background: rgba(0,212,255,0.15); color: var(--som); }
+  .dept-icon.vid-icon { background: rgba(255,107,53,0.15); color: var(--video); }
+
+  .op-file {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .op-file.has-file { color: var(--accent); opacity: 0.7; }
+
+  .op-time {
+    font-size: 0.8rem;
+    color: var(--muted);
+    white-space: nowrap;
+    width: 70px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .op-obs {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-style: italic;
+    max-width: 180px;
+  }
+
+  .turma-divider td {
+    background: #080810;
+    border-top: 2px solid var(--border);
+    padding: 6px 14px !important;
+  }
+
+  .turma-divider-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── REPORT VIEW ── */
+  #view-report { padding: 32px; max-width: 800px; margin: 0 auto; }
+
+  .report-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+
+  .report-block h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .report-file {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(42,42,58,0.3);
+  }
+
+  .report-file:last-child { border-bottom: none; }
+
+  .report-filename {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .report-desc { color: var(--muted); font-size: 0.78rem; }
+
+  .report-warn {
+    background: rgba(255,107,53,0.1);
+    border: 1px solid var(--video);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    margin-top: 16px;
+    color: var(--video);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .badge.audio { background: rgba(0,212,255,0.15); color: var(--som); }
+  .badge.video { background: rgba(255,107,53,0.15); color: var(--video); }
+
+  .print-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-bottom: 24px;
+  }
+
+  /* progress bar */
+  .op-progress-bar {
+    height: 3px;
+    background: var(--border);
+    position: relative;
+  }
+
+  .op-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+
+  @media print {
+    header, .view-toggle, .btn, .plan-toolbar { display: none; }
+    body { background: white; color: black; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Gala <span>//</span> Manager</div>
+  <div class="header-actions">
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="switchView('config')">Config</button>
+      <button class="view-btn" onclick="switchView('plan')">Planeamento</button>
+      <button class="view-btn" onclick="switchView('op')">Operação</button>
+      <button class="view-btn" onclick="switchView('report')">Relatório</button>
+    </div>
+    <button class="btn" onclick="saveData()">💾 Guardar</button>
+    <button class="btn" onclick="loadData()">📂 Abrir</button>
+  </div>
+</header>
+
+<!-- ══════════ CONFIG ══════════ -->
+<div id="view-config" class="view active">
+  <div style="padding:32px; max-width:800px; margin:0 auto;">
+    <p class="section-title">Configuração do Espectáculo</p>
+
+    <div class="config-block">
+      <p class="section-title">Informação Geral</p>
+      <div class="config-grid">
+        <div class="field">
+          <label>Nome do Espectáculo</label>
+          <input type="text" id="cfg-show-name" placeholder="Gala de Final de Ano 2025" oninput="autosave()">
+        </div>
+        <div class="field">
+          <label>Data</label>
+          <input type="date" id="cfg-date" oninput="autosave()">
+        </div>
+        <div class="field">
+          <label>Local</label>
+          <input type="text" id="cfg-venue" placeholder="Auditório Municipal" oninput="autosave()">
+        </div>
+        <div class="field">
+          <label>Hora de Início</label>
+          <input type="time" id="cfg-start-time" value="19:00" oninput="autosave()">
+        </div>
+      </div>
+    </div>
+
+    <div class="config-block">
+      <p class="section-title">Recursos de Som</p>
+      <div class="config-grid">
+        <div class="field">
+          <label>Nº Microfones de Lapela</label>
+          <input type="number" id="cfg-mic-lapela" value="4" min="0" oninput="autosave()">
+        </div>
+        <div class="field">
+          <label>Nº Microfones de Mão</label>
+          <input type="number" id="cfg-mic-mao" value="2" min="0" oninput="autosave()">
+        </div>
+        <div class="field">
+          <label>Nº Microfones de Pé/Ambiente</label>
+          <input type="number" id="cfg-mic-pe" value="2" min="0" oninput="autosave()">
+        </div>
+        <div class="field">
+          <label>Sistema de Som</label>
+          <select id="cfg-som-sistema" oninput="autosave()">
+            <option>Estéreo</option>
+            <option>Mono</option>
+            <option>5.1 Surround</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="checkbox-row">
+          <input type="checkbox" id="cfg-playback" checked onchange="autosave()">
+          <label for="cfg-playback">Playback disponível (reproducção de áudio)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-block">
+      <p class="section-title">Recursos de Vídeo</p>
+      <div class="config-grid">
+        <div class="field">
+          <label>Nº Projectores</label>
+          <input type="number" id="cfg-proj" value="1" min="0" oninput="autosave()">
+        </div>
+        <div class="field">
+          <label>Nº Ecrãs LED</label>
+          <input type="number" id="cfg-led" value="0" min="0" oninput="autosave()">
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="checkbox-row">
+          <input type="checkbox" id="cfg-video-ao-vivo" onchange="autosave()">
+          <label for="cfg-video-ao-vivo">Câmara ao vivo / IMAG disponível</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-block">
+      <p class="section-title">Recursos de Luz</p>
+      <div class="config-grid">
+        <div class="field">
+          <label>Consola de Luz</label>
+          <input type="text" id="cfg-luz-consola" placeholder="GrandMA2, ETC Eos..." oninput="autosave()">
+        </div>
+        <div class="field">
+          <label>Nº Canais Dimmer</label>
+          <input type="number" id="cfg-luz-canais" value="24" min="0" oninput="autosave()">
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="checkbox-row">
+          <input type="checkbox" id="cfg-moving" onchange="autosave()">
+          <label for="cfg-moving">Moving Heads disponíveis</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="cfg-followspot" onchange="autosave()">
+          <label for="cfg-followspot">Follow Spot disponível</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-block">
+      <p class="section-title">Formatos de Ficheiro Aceites</p>
+      <div style="display:flex; gap:24px; flex-wrap:wrap;">
+        <div>
+          <p style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Áudio</p>
+          <div class="checkbox-row"><input type="checkbox" id="fmt-mp3" checked onchange="autosave()"><label for="fmt-mp3">.mp3</label></div>
+          <div class="checkbox-row"><input type="checkbox" id="fmt-wav" checked onchange="autosave()"><label for="fmt-wav">.wav</label></div>
+          <div class="checkbox-row"><input type="checkbox" id="fmt-aiff" onchange="autosave()"><label for="fmt-aiff">.aiff</label></div>
+        </div>
+        <div>
+          <p style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Vídeo</p>
+          <div class="checkbox-row"><input type="checkbox" id="fmt-mp4" checked onchange="autosave()"><label for="fmt-mp4">.mp4</label></div>
+          <div class="checkbox-row"><input type="checkbox" id="fmt-mov" checked onchange="autosave()"><label for="fmt-mov">.mov</label></div>
+          <div class="checkbox-row"><input type="checkbox" id="fmt-avi" onchange="autosave()"><label for="fmt-avi">.avi</label></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn primary" onclick="switchView('plan')">Avançar para Planeamento →</button>
+  </div>
+</div>
+
+<!-- ══════════ PLANEAMENTO ══════════ -->
+<div id="view-plan" class="view">
+  <div class="plan-toolbar">
+    <div class="plan-title" id="plan-title">Planeamento</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn primary" onclick="addTurma()">+ Nova Turma</button>
+      <button class="btn" onclick="switchView('op')">▶ Ver Operação</button>
+    </div>
+  </div>
+  <div class="turmas-list" id="turmas-list"></div>
+</div>
+
+<!-- ══════════ OPERAÇÃO ══════════ -->
+<div id="view-op" class="view">
+  <div class="op-header">
+    <div class="op-show-title" id="op-show-title">—</div>
+    <div class="op-hint">
+      <kbd>Space</kbd> avançar &nbsp;
+      <kbd>←</kbd> recuar &nbsp;
+      <kbd>R</kbd> reiniciar &nbsp;
+      <kbd>F</kbd> fullscreen
+    </div>
+    <div class="delay-control">
+      <label>Atraso (min)</label>
+      <input type="number" class="delay-input" id="delay-input" value="0" min="0" onchange="renderOpTable()">
+    </div>
+    <div class="time-display" id="op-time-display">—</div>
+  </div>
+  <div class="op-progress-bar">
+    <div class="op-progress-fill" id="op-progress" style="width:0%"></div>
+  </div>
+  <div class="op-table-wrap">
+    <table class="op-table">
+      <thead>
+        <tr>
+          <th style="width:50px;text-align:right;">#</th>
+          <th style="width:80px;">Turma</th>
+          <th>Acção</th>
+          <th style="width:90px;">Dept</th>
+          <th>Ficheiro</th>
+          <th style="width:70px;">Hora</th>
+          <th>Obs</th>
+        </tr>
+      </thead>
+      <tbody id="op-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ RELATÓRIO ══════════ -->
+<div id="view-report" class="view">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+    <p class="section-title" style="margin:0;">Relatório para Escola</p>
+    <button class="print-btn" onclick="window.print()">🖨 Imprimir / PDF</button>
+  </div>
+  <div id="report-content"></div>
+</div>
+
+<!-- hidden file input -->
+<input type="file" id="file-input" accept=".json" style="display:none" onchange="loadFile(event)">
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let turmas = [];
+let currentCue = 0;
+let activeDrag = null;
+
+// ══════════════════════════════════════════════
+// VIEW SWITCHING
+// ══════════════════════════════════════════════
+function switchView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.view-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+  document.querySelectorAll('.view-btn').forEach(el => {
+    if (el.textContent.toLowerCase().includes(v === 'config' ? 'config' :
+        v === 'plan' ? 'plane' : v === 'op' ? 'oper' : 'relat')) {
+      el.classList.add('active');
+    }
+  });
+  if (v === 'op') { renderOpTable(); focusOp(); }
+  if (v === 'report') renderReport();
+  if (v === 'plan') renderPlanView();
+}
+
+// ══════════════════════════════════════════════
+// TURMAS CRUD
+// ══════════════════════════════════════════════
+function addTurma(name) {
+  const id = Date.now();
+  turmas.push({ id, name: name || 'Nova Turma', cues: [] });
+  renderPlanView();
+  autosave();
+}
+
+function removeTurma(id) {
+  if (!confirm('Apagar esta turma?')) return;
+  turmas = turmas.filter(t => t.id !== id);
+  renderPlanView();
+  autosave();
+}
+
+function addCue(turmaId) {
+  const t = turmas.find(t => t.id === turmaId);
+  if (!t) return;
+  t.cues.push({ id: Date.now(), action: '', luz: false, som: false, video: false, file: '', obs: '', dur: 3 });
+  renderPlanView();
+  autosave();
+}
+
+function removeCue(turmaId, cueId) {
+  const t = turmas.find(t => t.id === turmaId);
+  if (!t) return;
+  t.cues = t.cues.filter(c => c.id !== cueId);
+  renderPlanView();
+  autosave();
+}
+
+function updateCue(turmaId, cueId, field, value) {
+  const t = turmas.find(t => t.id === turmaId);
+  if (!t) return;
+  const c = t.cues.find(c => c.id === cueId);
+  if (!c) return;
+  c[field] = value;
+  // update file suggestion
+  if (['som', 'video', 'luz'].includes(field) || field === 'action') {
+    updateFileSuggestion(turmaId, cueId);
+  }
+  autosave();
+}
+
+function updateTurmaName(id, name) {
+  const t = turmas.find(t => t.id === id);
+  if (t) { t.name = name; autosave(); }
+}
+
+function updateFileSuggestion(turmaId, cueId) {
+  const t = turmas.find(t => t.id === turmaId);
+  if (!t) return;
+  const c = t.cues.find(c => c.id === cueId);
+  if (!c) return;
+  const el = document.getElementById(`file-sug-${cueId}`);
+  if (!el) return;
+  const slug = slugify(t.name);
+  const globalNum = getGlobalCueNum(turmaId, cueId);
+  if (c.video) {
+    el.textContent = `${slug}_cue${globalNum}.mp4`;
+    el.className = 'file-tag valid';
+  } else if (c.som) {
+    el.textContent = `${slug}_cue${globalNum}.mp3`;
+    el.className = 'file-tag valid';
+  } else {
+    el.textContent = '—';
+    el.className = 'file-tag';
+  }
+}
+
+function slugify(str) {
+  return str.toLowerCase()
+    .replace(/[áàãâä]/g,'a').replace(/[éèêë]/g,'e')
+    .replace(/[íìîï]/g,'i').replace(/[óòõôö]/g,'o')
+    .replace(/[úùûü]/g,'u').replace(/[ç]/g,'c')
+    .replace(/[ñ]/g,'n').replace(/[^a-z0-9]/g,'_')
+    .replace(/_+/g,'_').replace(/^_|_$/g,'');
+}
+
+function getGlobalCueNum(turmaId, cueId) {
+  let num = 1;
+  for (const t of turmas) {
+    for (const c of t.cues) {
+      if (t.id === turmaId && c.id === cueId) return num;
+      num++;
+    }
+  }
+  return num;
+}
+
+function getAllCues() {
+  const result = [];
+  for (const t of turmas) {
+    for (const c of t.cues) {
+      result.push({ turma: t, cue: c });
+    }
+  }
+  return result;
+}
+
+// ══════════════════════════════════════════════
+// PLAN VIEW RENDER
+// ══════════════════════════════════════════════
+function renderPlanView() {
+  const showName = document.getElementById('cfg-show-name')?.value || 'Planeamento';
+  const el = document.getElementById('plan-title');
+  if (el) el.textContent = showName;
+
+  const list = document.getElementById('turmas-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  turmas.forEach((t, ti) => {
+    const block = document.createElement('div');
+    block.className = 'turma-block';
+    block.setAttribute('draggable', 'true');
+    block.dataset.id = t.id;
+
+    // drag events
+    block.addEventListener('dragstart', e => {
+      activeDrag = t.id;
+      setTimeout(() => block.classList.add('dragging'), 0);
+    });
+    block.addEventListener('dragend', e => {
+      block.classList.remove('dragging');
+      document.querySelectorAll('.turma-block').forEach(b => b.classList.remove('drag-over'));
+      activeDrag = null;
+    });
+    block.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (activeDrag && activeDrag !== t.id) {
+        document.querySelectorAll('.turma-block').forEach(b => b.classList.remove('drag-over'));
+        block.classList.add('drag-over');
+      }
+    });
+    block.addEventListener('drop', e => {
+      e.preventDefault();
+      if (!activeDrag || activeDrag === t.id) return;
+      const fromIdx = turmas.findIndex(x => x.id === activeDrag);
+      const toIdx = turmas.findIndex(x => x.id === t.id);
+      const [moved] = turmas.splice(fromIdx, 1);
+      turmas.splice(toIdx, 0, moved);
+      renderPlanView();
+      autosave();
+    });
+
+    // header
+    const header = document.createElement('div');
+    header.className = 'turma-header';
+    header.innerHTML = `
+      <span class="drag-handle">⠿</span>
+      <input class="turma-name-input" value="${escHtml(t.name)}" placeholder="Nome da Turma"
+        oninput="updateTurmaName(${t.id}, this.value)">
+      <div class="turma-actions">
+        <span style="font-size:0.7rem;color:var(--muted)">${t.cues.length} cue${t.cues.length !== 1 ? 's' : ''}</span>
+        <button class="icon-btn del" onclick="removeTurma(${t.id})">✕</button>
+      </div>`;
+    block.appendChild(header);
+
+    // table
+    const tableWrap = document.createElement('div');
+    const table = document.createElement('table');
+    table.className = 'cue-table';
+    table.innerHTML = `<thead><tr>
+      <th style="width:36px">#</th>
+      <th>Acção / Descrição</th>
+      <th style="width:36px"><span class="dot luz"></span>Luz</th>
+      <th style="width:36px"><span class="dot som"></span>Som</th>
+      <th style="width:36px"><span class="dot video"></span>Vídeo</th>
+      <th style="width:60px">Dur. (min)</th>
+      <th>Ficheiro Sugerido</th>
+      <th>Observações Técnicas</th>
+      <th style="width:30px"></th>
+    </tr></thead>`;
+    const tbody = document.createElement('tbody');
+
+    let localNum = 1;
+    let globalNum = getGlobalStartNum(t.id);
+    t.cues.forEach(c => {
+      const tr = document.createElement('tr');
+      const audioFormats = getAcceptedFormats('audio');
+      const videoFormats = getAcceptedFormats('video');
+      const slug = slugify(t.name);
+      const fileSug = c.video ? `${slug}_cue${globalNum}.mp4`
+                    : c.som ? `${slug}_cue${globalNum}.mp3` : '—';
+      const fileClass = (c.video || c.som) ? 'file-tag valid' : 'file-tag';
+
+      tr.innerHTML = `
+        <td class="cue-num">${globalNum}</td>
+        <td><input type="text" value="${escHtml(c.action)}" placeholder="O que acontece…"
+          onchange="updateCue(${t.id},${c.id},'action',this.value)"></td>
+        <td style="text-align:center"><input type="checkbox" class="check-luz" ${c.luz?'checked':''}
+          onchange="updateCue(${t.id},${c.id},'luz',this.checked)"></td>
+        <td style="text-align:center"><input type="checkbox" class="check-som" ${c.som?'checked':''}
+          onchange="updateCue(${t.id},${c.id},'som',this.checked)"></td>
+        <td style="text-align:center"><input type="checkbox" class="check-video" ${c.video?'checked':''}
+          onchange="updateCue(${t.id},${c.id},'video',this.checked)"></td>
+        <td><input type="number" value="${c.dur||3}" min="0" style="width:50px"
+          onchange="updateCue(${t.id},${c.id},'dur',parseFloat(this.value)||0)"></td>
+        <td><span id="file-sug-${c.id}" class="${fileClass}">${fileSug}</span></td>
+        <td><input type="text" value="${escHtml(c.obs)}" placeholder="notas técnicas…"
+          onchange="updateCue(${t.id},${c.id},'obs',this.value)"></td>
+        <td><button class="icon-btn del" onclick="removeCue(${t.id},${c.id})">✕</button></td>`;
+      tbody.appendChild(tr);
+      localNum++; globalNum++;
+    });
+
+    table.appendChild(tbody);
+    tableWrap.appendChild(table);
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-row-btn';
+    addBtn.textContent = '+ Adicionar cue';
+    addBtn.onclick = () => addCue(t.id);
+    tableWrap.appendChild(addBtn);
+    block.appendChild(tableWrap);
+    list.appendChild(block);
+  });
+
+  if (turmas.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:60px;color:var(--muted)">
+      <div style="font-size:2rem;margin-bottom:12px">📋</div>
+      <div>Nenhuma turma ainda.<br>Clica em <strong>+ Nova Turma</strong> para começar.</div>
+    </div>`;
+  }
+}
+
+function getGlobalStartNum(turmaId) {
+  let num = 1;
+  for (const t of turmas) {
+    if (t.id === turmaId) return num;
+    num += t.cues.length;
+  }
+  return num;
+}
+
+// ══════════════════════════════════════════════
+// OPERATION VIEW
+// ══════════════════════════════════════════════
+function renderOpTable() {
+  const showName = document.getElementById('cfg-show-name')?.value || '—';
+  document.getElementById('op-show-title').textContent = showName;
+
+  const startTime = document.getElementById('cfg-start-time')?.value || '19:00';
+  const delay = parseInt(document.getElementById('delay-input')?.value || 0);
+  const [sh, sm] = startTime.split(':').map(Number);
+  let totalMinutes = sh * 60 + sm + delay;
+
+  const tbody = document.getElementById('op-tbody');
+  tbody.innerHTML = '';
+
+  const all = getAllCues();
+  let globalNum = 1;
+  let prevTurmaId = null;
+
+  all.forEach(({ turma, cue }, idx) => {
+    // turma divider
+    if (turma.id !== prevTurmaId) {
+      const divRow = document.createElement('tr');
+      divRow.className = 'turma-divider';
+      divRow.innerHTML = `<td colspan="7"><span class="turma-divider-label">▸ ${escHtml(turma.name)}</span></td>`;
+      tbody.appendChild(divRow);
+      prevTurmaId = turma.id;
+    }
+
+    const hh = Math.floor(totalMinutes / 60) % 24;
+    const mm = totalMinutes % 60;
+    const timeStr = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+
+    const slug = slugify(turma.name);
+    const fileStr = cue.video ? `${slug}_cue${globalNum}.mp4`
+                  : cue.som ? `${slug}_cue${globalNum}.mp3` : '—';
+
+    const tr = document.createElement('tr');
+    tr.className = `op-row ${idx < currentCue ? 'done' : idx === currentCue ? 'active' : idx === currentCue + 1 ? 'next' : ''}`;
+    tr.dataset.idx = idx;
+    tr.onclick = () => { currentCue = idx; updateActiveRow(); };
+
+    tr.innerHTML = `
+      <td class="op-cue-num">${globalNum}</td>
+      <td class="op-turma">${escHtml(turma.name)}</td>
+      <td class="op-action">${escHtml(cue.action || '—')}</td>
+      <td class="op-icons">
+        <span class="dept-icon luz-icon ${cue.luz ? 'on' : ''}">LUZ</span>
+        <span class="dept-icon som-icon ${cue.som ? 'on' : ''}">SOM</span>
+        <span class="dept-icon vid-icon ${cue.video ? 'on' : ''}">VID</span>
+      </td>
+      <td class="op-file ${(cue.som || cue.video) ? 'has-file' : ''}">${fileStr}</td>
+      <td class="op-time">${timeStr}</td>
+      <td class="op-obs">${escHtml(cue.obs || '')}</td>`;
+    tbody.appendChild(tr);
+
+    totalMinutes += (parseFloat(cue.dur) || 3);
+    globalNum++;
+  });
+
+  // update progress
+  const total = all.length;
+  const pct = total > 0 ? (currentCue / total) * 100 : 0;
+  document.getElementById('op-progress').style.width = pct + '%';
+
+  // update clock
+  const now = new Date();
+  document.getElementById('op-time-display').textContent =
+    `Agora: ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  scrollToActive();
+}
+
+function updateActiveRow() {
+  const all = getAllCues();
+  const total = all.length;
+  document.querySelectorAll('.op-row').forEach(tr => {
+    const idx = parseInt(tr.dataset.idx);
+    tr.className = `op-row ${idx < currentCue ? 'done' : idx === currentCue ? 'active' : idx === currentCue + 1 ? 'next' : ''}`;
+  });
+  const pct = total > 0 ? (currentCue / total) * 100 : 0;
+  document.getElementById('op-progress').style.width = pct + '%';
+  scrollToActive();
+}
+
+function scrollToActive() {
+  const active = document.querySelector('.op-row.active');
+  if (active) active.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+function focusOp() {
+  document.getElementById('view-op').focus();
+}
+
+// keyboard
+document.addEventListener('keydown', e => {
+  const opActive = document.getElementById('view-op').classList.contains('active');
+  if (!opActive) return;
+
+  const all = getAllCues();
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (currentCue < all.length - 1) { currentCue++; updateActiveRow(); }
+  } else if (e.code === 'ArrowLeft' || e.code === 'Backspace') {
+    e.preventDefault();
+    if (currentCue > 0) { currentCue--; updateActiveRow(); }
+  } else if (e.code === 'KeyR') {
+    currentCue = 0; updateActiveRow();
+  } else if (e.code === 'KeyF') {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  }
+});
+
+// clock tick
+setInterval(() => {
+  const opActive = document.getElementById('view-op').classList.contains('active');
+  if (!opActive) return;
+  const now = new Date();
+  const el = document.getElementById('op-time-display');
+  if (el) el.textContent = `Agora: ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+}, 30000);
+
+// ══════════════════════════════════════════════
+// REPORT VIEW
+// ══════════════════════════════════════════════
+function renderReport() {
+  const show = document.getElementById('cfg-show-name')?.value || 'Espectáculo';
+  const date = document.getElementById('cfg-date')?.value || '—';
+  const venue = document.getElementById('cfg-venue')?.value || '—';
+  const audioFmts = getAcceptedFormats('audio');
+  const videoFmts = getAcceptedFormats('video');
+
+  let html = `
+    <div class="report-block">
+      <h3>📋 ${escHtml(show)} — Instruções de Entrega de Ficheiros</h3>
+      <p style="color:var(--muted);font-size:0.8rem;">Data: ${date} &nbsp;|&nbsp; Local: ${escHtml(venue)}</p>
+      <div class="report-warn" style="margin-top:16px;">
+        <strong>Atenção:</strong> Os ficheiros <strong>devem ter exactamente o nome indicado</strong>, sem espaços, sem acentos, e no formato correcto.<br>
+        Áudio: ${audioFmts.join(', ')} &nbsp;|&nbsp; Vídeo: ${videoFmts.join(', ')}
+      </div>
+    </div>`;
+
+  let globalNum = 1;
+  turmas.forEach(t => {
+    const audioFiles = [];
+    const videoFiles = [];
+    const slug = slugify(t.name);
+
+    t.cues.forEach(c => {
+      if (c.video) {
+        videoFiles.push({ name: `${slug}_cue${globalNum}.mp4`, action: c.action, cue: globalNum });
+      } else if (c.som) {
+        audioFiles.push({ name: `${slug}_cue${globalNum}.mp3`, action: c.action, cue: globalNum });
+      }
+      globalNum++;
+    });
+
+    if (audioFiles.length === 0 && videoFiles.length === 0) return;
+
+    html += `<div class="report-block"><h3>🎓 ${escHtml(t.name)}</h3>`;
+
+    if (audioFiles.length > 0) {
+      html += `<p style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Ficheiros de Áudio</p>`;
+      audioFiles.forEach(f => {
+        html += `<div class="report-file">
+          <span class="badge audio">ÁUDIO</span>
+          <span class="report-filename">${escHtml(f.name)}</span>
+          <span class="report-desc">— cue ${f.cue}: ${escHtml(f.action)}</span>
+        </div>`;
+      });
+    }
+
+    if (videoFiles.length > 0) {
+      if (audioFiles.length > 0) html += '<br>';
+      html += `<p style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Ficheiros de Vídeo</p>`;
+      videoFiles.forEach(f => {
+        html += `<div class="report-file">
+          <span class="badge video">VÍDEO</span>
+          <span class="report-filename">${escHtml(f.name)}</span>
+          <span class="report-desc">— cue ${f.cue}: ${escHtml(f.action)}</span>
+        </div>`;
+      });
+    }
+
+    html += `</div>`;
+  });
+
+  html += `<div class="report-block">
+    <h3>⚙️ Equipamento Disponível</h3>
+    <p>🎤 Microfones lapela: <strong>${document.getElementById('cfg-mic-lapela')?.value || 0}</strong></p>
+    <p>🎤 Microfones de mão: <strong>${document.getElementById('cfg-mic-mao')?.value || 0}</strong></p>
+    <p>🎤 Microfones de pé/ambiente: <strong>${document.getElementById('cfg-mic-pe')?.value || 0}</strong></p>
+    <p>📽️ Projectores: <strong>${document.getElementById('cfg-proj')?.value || 0}</strong></p>
+    <p>🔊 Sistema de som: <strong>${document.getElementById('cfg-som-sistema')?.value || '—'}</strong></p>
+  </div>`;
+
+  document.getElementById('report-content').innerHTML = html;
+}
+
+function getAcceptedFormats(type) {
+  const fmt = [];
+  if (type === 'audio') {
+    if (document.getElementById('fmt-mp3')?.checked) fmt.push('.mp3');
+    if (document.getElementById('fmt-wav')?.checked) fmt.push('.wav');
+    if (document.getElementById('fmt-aiff')?.checked) fmt.push('.aiff');
+  } else {
+    if (document.getElementById('fmt-mp4')?.checked) fmt.push('.mp4');
+    if (document.getElementById('fmt-mov')?.checked) fmt.push('.mov');
+    if (document.getElementById('fmt-avi')?.checked) fmt.push('.avi');
+  }
+  return fmt.length ? fmt : ['.mp3', '.wav'];
+}
+
+// ══════════════════════════════════════════════
+// SAVE / LOAD
+// ══════════════════════════════════════════════
+function collectConfig() {
+  return {
+    showName: document.getElementById('cfg-show-name')?.value,
+    date: document.getElementById('cfg-date')?.value,
+    venue: document.getElementById('cfg-venue')?.value,
+    startTime: document.getElementById('cfg-start-time')?.value,
+    micLapela: document.getElementById('cfg-mic-lapela')?.value,
+    micMao: document.getElementById('cfg-mic-mao')?.value,
+    micPe: document.getElementById('cfg-mic-pe')?.value,
+    somSistema: document.getElementById('cfg-som-sistema')?.value,
+    playback: document.getElementById('cfg-playback')?.checked,
+    proj: document.getElementById('cfg-proj')?.value,
+    led: document.getElementById('cfg-led')?.value,
+    videoAoVivo: document.getElementById('cfg-video-ao-vivo')?.checked,
+    luzConsola: document.getElementById('cfg-luz-consola')?.value,
+    luzCanais: document.getElementById('cfg-luz-canais')?.value,
+    moving: document.getElementById('cfg-moving')?.checked,
+    followspot: document.getElementById('cfg-followspot')?.checked,
+    fmtMp3: document.getElementById('fmt-mp3')?.checked,
+    fmtWav: document.getElementById('fmt-wav')?.checked,
+    fmtAiff: document.getElementById('fmt-aiff')?.checked,
+    fmtMp4: document.getElementById('fmt-mp4')?.checked,
+    fmtMov: document.getElementById('fmt-mov')?.checked,
+    fmtAvi: document.getElementById('fmt-avi')?.checked,
+  };
+}
+
+function applyConfig(cfg) {
+  if (!cfg) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) { if (el.type === 'checkbox') el.checked = val; else el.value = val || ''; } };
+  set('cfg-show-name', cfg.showName); set('cfg-date', cfg.date); set('cfg-venue', cfg.venue);
+  set('cfg-start-time', cfg.startTime); set('cfg-mic-lapela', cfg.micLapela); set('cfg-mic-mao', cfg.micMao);
+  set('cfg-mic-pe', cfg.micPe); set('cfg-som-sistema', cfg.somSistema); set('cfg-playback', cfg.playback);
+  set('cfg-proj', cfg.proj); set('cfg-led', cfg.led); set('cfg-video-ao-vivo', cfg.videoAoVivo);
+  set('cfg-luz-consola', cfg.luzConsola); set('cfg-luz-canais', cfg.luzCanais);
+  set('cfg-moving', cfg.moving); set('cfg-followspot', cfg.followspot);
+  set('fmt-mp3', cfg.fmtMp3); set('fmt-wav', cfg.fmtWav); set('fmt-aiff', cfg.fmtAiff);
+  set('fmt-mp4', cfg.fmtMp4); set('fmt-mov', cfg.fmtMov); set('fmt-avi', cfg.fmtAvi);
+}
+
+function saveData() {
+  const data = { config: collectConfig(), turmas };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const showName = document.getElementById('cfg-show-name')?.value || 'gala';
+  a.download = slugify(showName) + '_cuemanager.json';
+  a.click();
+}
+
+function loadData() {
+  document.getElementById('file-input').click();
+}
+
+function loadFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      applyConfig(data.config);
+      turmas = data.turmas || [];
+      currentCue = 0;
+      renderPlanView();
+      alert('Ficheiro carregado com sucesso!');
+    } catch {
+      alert('Erro ao ler ficheiro.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function autosave() {
+  try {
+    localStorage.setItem('gala_manager_data', JSON.stringify({ config: collectConfig(), turmas }));
+  } catch {}
+}
+
+function loadAutosave() {
+  try {
+    const raw = localStorage.getItem('gala_manager_data');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    applyConfig(data.config);
+    turmas = data.turmas || [];
+    renderPlanView();
+  } catch {}
+}
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  loadAutosave();
+
+  // demo data se não houver nada
+  if (turmas.length === 0) {
+    turmas = [
+      {
+        id: 1, name: '5ºA',
+        cues: [
+          { id: 11, action: 'Entrada em palco', luz: true, som: true, video: false, file: '', obs: 'fade in geral', dur: 3 },
+          { id: 12, action: 'Dança', luz: true, som: false, video: true, file: '', obs: '', dur: 5 },
+          { id: 13, action: 'Saída + Blackout', luz: true, som: false, video: false, file: '', obs: 'blackout total', dur: 2 },
+        ]
+      },
+      {
+        id: 2, name: '6ºB',
+        cues: [
+          { id: 21, action: 'Entrada com música', luz: true, som: true, video: false, file: '', obs: '', dur: 2 },
+          { id: 22, action: 'Teatro', luz: true, som: false, video: false, file: '', obs: 'cena 1 e 2', dur: 8 },
+          { id: 23, action: 'Vídeo de turma', luz: false, som: false, video: true, file: '', obs: 'projectar no ecrã grande', dur: 3 },
+        ]
+      }
+    ];
+    renderPlanView();
+  }
+});
+</script>
+</body>
+</html>
